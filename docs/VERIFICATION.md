@@ -47,6 +47,6 @@ cargo test --features remote-http             # + remote HTTP client integ
 - Tests may `unwrap`/`expect`; production paths map failures to typed
   [`BosonError`](https://docs.rs/boson-core) / `anyhow` (no ordinary-path unwrap).
 - Sad-path assertions check typed variants, HTTP status codes, or message
-  content — not smoke-only `is_err()`.
+  content — (stronger than `is_err()` alone).
 - Auth for raw `/api/boson` is host-injected; this crate does not claim to secure
   the HTTP boundary.

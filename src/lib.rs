@@ -4,7 +4,7 @@
 //! [`BosonCoordinatorBackend`] trait abstracts "administer and enqueue Boson tasks" behind
 //! one interface, whether the task queue lives in-process or behind a remote HTTP boundary.
 //! Hosts and product code depend on this crate instead of reaching into upstream
-//! `boson-runtime` directly, so swapping topology later is a backend swap, not a rewrite.
+//! `boson-runtime` directly, so swapping topology later is a backend swap.
 //!
 //! [Boson]: https://github.com/unified-field-dev/boson
 //!
