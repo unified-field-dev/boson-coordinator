@@ -21,11 +21,12 @@ jobs:
       - name: Formatting check
         run: cargo fmt --all -- --check
       - name: Clippy
-        run: cargo clippy --all-targets --all-features -- -D warnings
+        # remote-http pulls private deathbreakfast/soliton; exercise axum without it.
+        run: cargo clippy --all-targets --features axum -- -D warnings
       - name: Test
         # Serialize: shared OnceLock registry/queue fixtures can flake under parallel cargo test.
-        run: cargo test --all-features -- --test-threads=1
+        run: cargo test --features axum -- --test-threads=1
       - name: cargo doc
-        run: cargo doc --no-deps --all-features
+        run: cargo doc --no-deps --features axum
         env:
           RUSTDOCFLAGS: "-D warnings"
