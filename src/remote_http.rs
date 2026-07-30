@@ -95,58 +95,14 @@ fn boson_sign_path(api_path: &str) -> String {
     format!("/api/boson{}", api_path)
 }
 
-/// Soliton-compatible subsystem auth header name.
-pub const SUBSYSTEM_AUTH_HEADER_NAME: &str = "x-subsystem-auth";
+pub use soliton::subsystem_auth::{
+    load_hmac_key_material_from_env, subsystem_hmac_header_pair, SUBSYSTEM_AUTH_HEADER_NAME,
+};
 
 /// Environment variable for HMAC key material (UTF-8, or `hex:` + hex bytes).
-pub const SUBSYSTEM_HMAC_KEY_ENV: &str = "SUBSYSTEM_AUTH_HMAC_KEY";
-
-/// Load `SUBSYSTEM_AUTH_HMAC_KEY` the same way as Soliton's `subsystem_auth`.
-#[must_use]
-pub fn load_hmac_key_material_from_env() -> Option<Vec<u8>> {
-    let v = std::env::var(SUBSYSTEM_HMAC_KEY_ENV).ok()?;
-    let t = v.trim();
-    if t.is_empty() {
-        return None;
-    }
-    if let Some(rest) = t.strip_prefix("hex:") {
-        let rest = rest.trim();
-        if rest.is_empty() {
-            return None;
-        }
-        hex::decode(rest).ok()
-    } else {
-        Some(t.as_bytes().to_vec())
-    }
-}
-
-fn hmac_hex(key: &[u8], method: &str, path_and_query: &str, body: &[u8]) -> Option<String> {
-    use hmac::{Hmac, Mac};
-    use sha2::Sha256;
-    type HmacSha256 = Hmac<Sha256>;
-    let mut mac = HmacSha256::new_from_slice(key).ok()?;
-    mac.update(method.to_ascii_uppercase().as_bytes());
-    mac.update(b"\n");
-    mac.update(path_and_query.as_bytes());
-    mac.update(b"\n");
-    mac.update(body);
-    Some(hex::encode(mac.finalize().into_bytes()))
-}
-
-/// Returns `(header_name, hex_tag)` when `SUBSYSTEM_AUTH_HMAC_KEY` is configured.
 ///
-/// Matches Soliton `subsystem_hmac_header_pair` so remote clients and gateway
-/// middleware share one key and algorithm.
-#[must_use]
-pub fn subsystem_hmac_header_pair(
-    method: &str,
-    path_and_query: &str,
-    body: &[u8],
-) -> Option<(&'static str, String)> {
-    let key = load_hmac_key_material_from_env()?;
-    let tag = hmac_hex(&key, method, path_and_query, body)?;
-    Some((SUBSYSTEM_AUTH_HEADER_NAME, tag))
-}
+/// Same name as Soliton / fleet runtimes (`SUBSYSTEM_AUTH_HMAC_KEY`).
+pub const SUBSYSTEM_HMAC_KEY_ENV: &str = "SUBSYSTEM_AUTH_HMAC_KEY";
 
 fn add_subsystem_hmac(
     req: reqwest::RequestBuilder,
