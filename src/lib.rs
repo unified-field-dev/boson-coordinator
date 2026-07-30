@@ -21,7 +21,7 @@
 //! - **Axum routes** (`axum` feature) — [`axum_api::BosonState`] and
 //!   [`axum_api::boson_router`] mount upstream's `/api/boson` routes on your own Axum state
 //! - **Remote HTTP client** (`remote-http` feature) —
-//!   [`remote_http::HttpRemoteBosonCoordinatorBackend`] talks to a split `boson-server` over
+//!   `remote_http::HttpRemoteBosonCoordinatorBackend` talks to a split `boson-server` over
 //!   HTTP while keeping task discovery in-process
 //! - **Task-config bootstrap** — [`ensure_default_task_configs_embedded`] seeds
 //!   `boson_task_config` rows from `#[boson::task]` inventory defaults
@@ -70,7 +70,7 @@
 //!
 //! Use this when product code and the Boson runtime live in different binaries (split
 //! `server-apps` → `boson-server` topology). Task discovery (`registry()`) stays in-process; job
-//! and run mutations go over HTTP to `/api/boson/*`. See [`remote_http`] for base-URL resolution.
+//! and run mutations go over HTTP to `/api/boson/*`. See the `remote_http` module for base-URL resolution.
 //!
 //! ```rust,ignore
 //! use std::sync::Arc;
@@ -99,7 +99,7 @@
 //! |---------|-----|
 //! | Backend-agnostic enqueue/admin surface | [`BosonCoordinatorBackend`] — the trait every backend implements |
 //! | Local, in-process enqueue | [`CoordinatorAdapter`] wrapping upstream [`Boson`](boson_runtime::Boson) |
-//! | Remote, split `boson-server` topology | [`remote_http`] (`remote-http` feature) — HTTP backend, base-URL resolution, DTOs |
+//! | Remote, split `boson-server` topology | `remote_http` (`remote-http` feature) — HTTP backend, base-URL resolution, DTOs |
 //! | Mounting upstream's `/api/boson` on your router | [`axum_api`] (`axum` feature) — Axum state and router |
 //! | Seeding task config at boot | [`ensure_default_task_configs_embedded`] — bootstrap from `#[boson::task]` inventory defaults |
 //! | Autoscaling workers to queue depth | [`scaling`] / [`stats`] — worker-count math and the queue-depth metric that feeds it |

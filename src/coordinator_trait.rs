@@ -10,7 +10,7 @@ use boson_runtime::{Boson, TaskRegistry};
 /// Object-safe (`dyn`-compatible) so hosts can hold `Arc<dyn BosonCoordinatorBackend>` without
 /// knowing whether jobs run through an in-process [`Boson`] runtime
 /// ([`CoordinatorAdapter`](crate::CoordinatorAdapter)) or across an HTTP boundary
-/// ([`HttpRemoteBosonCoordinatorBackend`](crate::remote_http::HttpRemoteBosonCoordinatorBackend)).
+/// (`HttpRemoteBosonCoordinatorBackend`, `remote-http` feature).
 ///
 /// # Examples
 ///
