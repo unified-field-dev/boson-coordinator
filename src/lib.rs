@@ -28,6 +28,14 @@
 //! - **Autoscale helpers** — [`scaling::compute_target_workers`] turns queue depth into a
 //!   worker count with hysteresis; [`stats::count_queued_jobs`] feeds it
 //!
+//! # Feature flags
+//!
+//! | Feature | Default | Purpose |
+//! |---------|---------|---------|
+//! | *(none)* | yes | Trait, local [`CoordinatorAdapter`], default task-config bootstrap |
+//! | `axum` | no | [`axum_api`] — mount upstream `/api/boson` on Axum state |
+//! | `remote-http` | no | [`remote_http`] HTTP client for split `boson-server` topology |
+//!
 //! *One coordinator trait, two backends — the same product code enqueues and administers Boson
 //! tasks whether they run in this process or across an HTTP boundary.*
 //!
@@ -41,7 +49,7 @@
 //! Use this when your binary already owns an upstream [`Boson`](boson_runtime::Boson) runtime
 //! (the common case for a monolith, or a worker binary that also serves admin routes).
 //!
-//! ```rust,ignore
+//! ```rust,no_run
 //! use std::sync::Arc;
 //!
 //! use boson_coordinator::{BosonCoordinatorBackend, CoordinatorAdapter};

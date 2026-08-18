@@ -26,6 +26,12 @@ use boson_runtime::{Boson, TaskRegistry};
 /// # Ok(())
 /// # }
 /// ```
+///
+/// # Errors
+///
+/// Methods returning [`Result`] propagate [`boson_core::BosonError`] from the backing runtime
+/// or HTTP client (enqueue validation, persistence, cancel races). Methods returning `Option`
+/// use `None` for not-found jobs or runs without an error.
 #[async_trait]
 pub trait BosonCoordinatorBackend: Send + Sync {
     /// Enqueue a task for background execution.
