@@ -14,19 +14,19 @@
 //!
 //! ## Features
 //!
-//! - **Object-safe backend trait** — [`BosonCoordinatorBackend`] is `dyn`-compatible, so hosts
-//!   hold `Arc<dyn BosonCoordinatorBackend>` without caring whether it is local or remote
-//! - **Local runtime handle** — [`CoordinatorAdapter`] wraps an upstream
-//!   [`Boson`](boson_runtime::Boson) runtime for same-process enqueue and admin
-//! - **Axum routes** (`axum` feature) — [`axum_api::BosonState`] and
-//!   [`axum_api::boson_router`] mount upstream's `/api/boson` routes on your own Axum state
-//! - **Remote HTTP client** (`remote-http` feature) —
-//!   `remote_http::HttpRemoteBosonCoordinatorBackend` talks to a split `boson-server` over
-//!   HTTP while keeping task discovery in-process
-//! - **Task-config bootstrap** — [`ensure_default_task_configs_embedded`] seeds
-//!   `boson_task_config` rows from `#[boson::task]` inventory defaults
-//! - **Autoscale helpers** — [`scaling::compute_target_workers`] turns queue depth into a
-//!   worker count with hysteresis; [`stats::count_queued_jobs`] feeds it
+//! - **In-process enqueue** — Wrap an upstream [`Boson`](boson_runtime::Boson) runtime in
+//!   [`CoordinatorAdapter`] and enqueue through [`BosonCoordinatorBackend`] so product code stays
+//!   portable to a remote backend later. [Get started](#in-process-enqueue)
+//! - **Remote HTTP backend** — Forward enqueue and admin calls to a split `boson-server` over HTTP
+//!   (`remote-http` feature) while keeping task discovery in-process. [Get started](#remote-http-backend)
+//! - **Axum mount** — Nest upstream `/api/boson` routes on your host Axum router with fail-closed
+//!   admin auth (`axum` feature). [Get started](#axum-mount)
+//! - **Task-config bootstrap** — Seed `boson_task_config` rows from `#[boson::task]` inventory
+//!   defaults at host boot so workers see current retry and rate-limit policy.
+//!   [Get started](#task-config-bootstrap)
+//! - **Autoscale helpers** — [`scaling::compute_target_workers`] turns queue depth into a worker
+//!   count with hysteresis; [`stats::count_queued_jobs`] feeds it ([`scaling`](scaling/index.html) /
+//!   [`stats`](stats/index.html) API reference)
 //!
 //! # Feature flags
 //!
@@ -41,44 +41,54 @@
 //!
 //! # Getting started
 //!
-//! Most hosts only need one of the two backends below, wrapped in `Arc<dyn
-//! BosonCoordinatorBackend>` so product code never depends on which one is active.
+//! Most hosts pick one backend, wrap it in `Arc<dyn BosonCoordinatorBackend>`, and keep product
+//! code on the trait surface.
 //!
-//! ## In-process: `CoordinatorAdapter`
+//! ## In-process enqueue
 //!
-//! Use this when your binary already owns an upstream [`Boson`](boson_runtime::Boson) runtime
-//! (the common case for a monolith, or a worker binary that also serves admin routes).
+//! [`CoordinatorAdapter`] is the local backend when your binary already owns an upstream
+//! [`Boson`](boson_runtime::Boson) runtime. Monoliths and worker binaries that serve admin
+//! routes use this path once the runtime is built.
+//!
+//! Prerequisites: a shared `Arc<Boson>` runtime and tasks registered through `#[boson::task]`
+//! inventory.
 //!
 //! ```rust,no_run
 //! use std::sync::Arc;
 //!
 //! use boson_coordinator::{BosonCoordinatorBackend, CoordinatorAdapter};
 //!
-//! # fn wire(boson: Arc<boson_runtime::Boson>) {
+//! # async fn enqueue(boson: Arc<boson_runtime::Boson>) -> boson_coordinator::Result<()> {
 //! let backend: Arc<dyn BosonCoordinatorBackend> = Arc::new(CoordinatorAdapter::new(boson));
-//! # let _ = backend;
-//! # }
-//! ```
-//!
-//! Enqueue and inspect jobs through the trait, not the concrete type, so callers stay portable
-//! to the remote backend below:
-//!
-//! ```rust,ignore
-//! # async fn enqueue(backend: &dyn boson_coordinator::BosonCoordinatorBackend) -> boson_coordinator::Result<()> {
 //! let job_id = backend
-//!     .enqueue("send_email", serde_json::json!({}), serde_json::json!({"to": "a@b.com"}), None)
+//!     .enqueue(
+//!         "send_email",
+//!         serde_json::json!({}),
+//!         serde_json::json!({"to": "a@b.com"}),
+//!         None,
+//!     )
 //!     .await?;
-//! let job = backend.get_job(&job_id).await;
-//! # let _ = job;
+//! let job = backend
+//!     .get_job(&job_id)
+//!     .await
+//!     .expect("the enqueued job must be readable");
+//! assert_eq!(job.task_name, "send_email");
 //! # Ok(())
 //! # }
 //! ```
 //!
-//! ## Remote HTTP: `remote_http::HttpRemoteBosonCoordinatorBackend` (`remote-http` feature)
+//! Next: switch to [Remote HTTP backend](#remote-http-backend) when product code and
+//! `boson-server` run in separate binaries.
 //!
-//! Use this when product code and the Boson runtime live in different binaries (split
-//! `server-apps` → `boson-server` topology). Task discovery (`registry()`) stays in-process; job
-//! and run mutations go over HTTP to `/api/boson/*`. See the `remote_http` module for base-URL resolution.
+//! ## Remote HTTP backend
+//!
+//! The `remote-http` client implements [`BosonCoordinatorBackend`] against a remote
+//! `boson-server`. Product code in `server-apps` enqueues here; `registry()` still runs
+//! in-process so workers discover the same task inventory.
+//!
+//! Prerequisites: enable the `remote-http` feature and set `BOSON_REMOTE_BASE_URL` or
+//! `SUBSYSTEM_GATEWAY_BASE_URL` + `SUBSYSTEM_CELL_SLUG`. Optional `SUBSYSTEM_AUTH_HMAC_KEY`
+//! signs requests (Soliton-compatible `x-subsystem-auth`).
 //!
 //! ```rust,ignore
 //! use std::sync::Arc;
@@ -86,34 +96,85 @@
 //! use boson_coordinator::BosonCoordinatorBackend;
 //! use boson_coordinator::remote_http::build_remote_coordinator;
 //!
-//! # async fn wire() -> boson_coordinator::Result<()> {
+//! # async fn enqueue() -> boson_coordinator::Result<()> {
 //! let backend: Arc<dyn BosonCoordinatorBackend> = build_remote_coordinator()?;
 //! let job_id = backend
 //!     .enqueue("send_email", serde_json::json!({}), serde_json::json!({}), None)
 //!     .await?;
-//! # let _ = job_id;
+//! assert!(!job_id.is_empty(), "remote enqueue must return a job id");
 //! # Ok(())
 //! # }
 //! ```
 //!
-//! ## Axum routes (`axum` feature)
+//! Base-URL resolution and signing details live in the [`remote_http`] module. Next:
+//! [mount Axum routes](#axum-mount) when this binary also serves `/api/boson`.
 //!
-//! Mount upstream Boson's HTTP API on your own Axum router and state via
-//! [`axum_api::boson_router`] and [`axum_api::BosonState`] — see [`axum_api`] for a full example.
+//! ## Axum mount
 //!
-//! ## Concern → API
+//! Mount upstream Boson's HTTP API on your host router at startup after the coordinator runtime
+//! is wired. Admin routes fail closed unless you install [`axum_api::AdminAuth`] or opt into open
+//! lab mode (`BOSON_OPEN_LAB_MODE=1`).
 //!
-//! | Concern | API |
-//! |---------|-----|
-//! | Backend-agnostic enqueue/admin surface | [`BosonCoordinatorBackend`] — the trait every backend implements |
-//! | Local, in-process enqueue | [`CoordinatorAdapter`] wrapping upstream [`Boson`](boson_runtime::Boson) |
-//! | Remote, split `boson-server` topology | `remote_http` (`remote-http` feature) — HTTP backend, base-URL resolution, DTOs |
-//! | Mounting upstream's `/api/boson` on your router | [`axum_api`] (`axum` feature) — Axum state and router |
-//! | Seeding task config at boot | [`ensure_default_task_configs_embedded`] — bootstrap from `#[boson::task]` inventory defaults |
-//! | Autoscaling workers to queue depth | [`scaling`] / [`stats`] — worker-count math and the queue-depth metric that feeds it |
+//! Prerequisites: `axum` feature, `Arc<Boson>` runtime, and an `AdminAuth` verifier on
+//! [`axum_api::BosonState::builder`].
 //!
-//! Runnable examples: `cargo run -p boson-coordinator --example local_enqueue`
-//! (and `axum_require_admin` with the `axum` feature).
+//! ```rust,ignore
+//! use std::sync::Arc;
+//!
+//! use axum::extract::FromRef;
+//! use boson_coordinator::axum_api::{
+//!     boson_router, BosonState, StaticTokenAdminAuth, NEST_PATH,
+//! };
+//!
+//! #[derive(Clone)]
+//! struct AppState {
+//!     boson: BosonState,
+//! }
+//!
+//! impl FromRef<AppState> for boson_axum::BosonState {
+//!     fn from_ref(app: &AppState) -> Self {
+//!         app.boson.inner_axum()
+//!     }
+//! }
+//!
+//! # fn mount(boson: Arc<boson_runtime::Boson>) -> anyhow::Result<axum::Router<AppState>> {
+//! let state = AppState {
+//!     boson: BosonState::builder(boson)
+//!         .admin_auth(Arc::new(StaticTokenAdminAuth::new("lab-token")))
+//!         .require_admin_auth(true)
+//!         .build()?,
+//! };
+//! let router = boson_router::<AppState>().with_state(state);
+//! println!("Boson routes mounted at {NEST_PATH}");
+//! # Ok(router)
+//! # }
+//! ```
+//!
+//! Runnable variant: `cargo run -p boson-coordinator --example axum_require_admin --features axum`.
+//!
+//! ## Task-config bootstrap
+//!
+//! Call [`ensure_default_task_configs_embedded`] once at host boot after the coordinator backend
+//! is wired and before workers dequeue jobs. The call upserts `boson_task_config` rows from
+//! `#[boson::task]` descriptor defaults so retry, rate-limit, and pool settings stay current.
+//!
+//! Prerequisites: a [`BosonCoordinatorBackend`] handle and linked `#[boson::task]` inventory.
+//! Skip hand-managed tasks with [`ensure_default_task_configs_embedded_with_skip`].
+//!
+//! ```rust,ignore
+//! use std::sync::Arc;
+//!
+//! use boson_coordinator::{ensure_default_task_configs_embedded, BosonCoordinatorBackend};
+//!
+//! # async fn boot(backend: Arc<dyn BosonCoordinatorBackend>) -> anyhow::Result<()> {
+//! ensure_default_task_configs_embedded(backend.clone()).await?;
+//! let cfg = backend.get_task_config("send_email").await?;
+//! assert_eq!(cfg.task_name, "send_email");
+//! # Ok(())
+//! # }
+//! ```
+//!
+//! Runnable in-process enqueue example: `cargo run -p boson-coordinator --example local_enqueue`.
 
 #[cfg(feature = "axum")]
 pub mod axum_api;
