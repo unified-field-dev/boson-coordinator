@@ -14,14 +14,14 @@
 //!
 //! ## Features
 //!
-//! - **In-process enqueue** — Wrap an upstream [`Boson`](boson_runtime::Boson) runtime in
+//! - **Local coordinator backend** — Wrap an upstream [`Boson`](boson_runtime::Boson) runtime in
 //!   [`CoordinatorAdapter`] and enqueue through [`BosonCoordinatorBackend`] so product code stays
 //!   portable to a remote backend later. [Get started](#in-process-enqueue)
-//! - **Remote HTTP backend** — Forward enqueue and admin calls to a split `boson-server` over HTTP
+//! - **Remote coordinator backend** — Forward enqueue and admin calls to a split `boson-server` over HTTP
 //!   (`remote-http` feature) while keeping task discovery in-process. [Get started](#remote-http-backend)
-//! - **Axum mount** — Nest upstream `/api/boson` routes on your host Axum router with fail-closed
+//! - **Axum API mount** — Nest upstream `/api/boson` routes on your host Axum router with fail-closed
 //!   admin auth (`axum` feature). [Get started](#axum-mount)
-//! - **Task-config bootstrap** — Seed `boson_task_config` rows from `#[boson::task]` inventory
+//! - **Default task-config seeding** — Seed `boson_task_config` rows from `#[boson::task]` inventory
 //!   defaults at host boot so workers see current retry and rate-limit policy.
 //!   [Get started](#task-config-bootstrap)
 //! - **Autoscale helpers** — [`scaling::compute_target_workers`] turns queue depth into a worker
