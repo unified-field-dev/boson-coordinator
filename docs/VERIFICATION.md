@@ -14,9 +14,18 @@ export CARGO_TARGET_DIR=target-boson-coordinator
 
 ```bash
 cargo fmt --all --check
-cargo clippy --all-targets --features axum,remote-http -- -D warnings
+# GitHub Actions quality job uses --features axum only (remote-http pulls private soliton).
+cargo clippy --all-targets --features axum -- -D warnings
 # Serialize tests: some suites share process-wide OnceLock registries / queue fixtures
 # and can flake under parallel cargo test. Prefer isolation later; until then:
+cargo test --features axum -- --test-threads=1
+RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --features axum
+```
+
+Local fuller gate (needs `deathbreakfast/soliton` for `remote-http`):
+
+```bash
+cargo clippy --all-targets --features axum,remote-http -- -D warnings
 cargo test --features axum,remote-http -- --test-threads=1
 ```
 
