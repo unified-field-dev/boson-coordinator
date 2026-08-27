@@ -34,7 +34,7 @@
 //! |---------|---------|---------|
 //! | *(none)* | yes | Trait, local [`CoordinatorAdapter`], default task-config bootstrap |
 //! | `axum` | no | [`axum_api`] — mount upstream `/api/boson` on Axum state |
-//! | `remote-http` | no | [`remote_http`] HTTP client for split `boson-server` topology |
+//! | `remote-http` | no | `remote_http` HTTP client for split `boson-server` topology |
 //!
 //! *One coordinator trait, two backends — the same product code enqueues and administers Boson
 //! tasks whether they run in this process or across an HTTP boundary.*
@@ -106,7 +106,7 @@
 //! # }
 //! ```
 //!
-//! Base-URL resolution and signing details live in the [`remote_http`] module. Next:
+//! Base-URL resolution and signing details live in the `remote_http` module. Next:
 //! [mount Axum routes](#axum-mount) when this binary also serves `/api/boson`.
 //!
 //! ## Axum mount
