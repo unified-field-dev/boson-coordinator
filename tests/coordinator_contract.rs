@@ -3,9 +3,9 @@
 //! Test-only fixtures below are intentionally undocumented; this binary target is exempt from
 //! the library's `missing_docs = "deny"` lint (see `Cargo.toml`).
 #![allow(missing_docs)]
-#![allow(clippy::unwrap_used, clippy::expect_used)]
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::await_holding_lock)]
 
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, OnceLock};
 
 use async_trait::async_trait;
 use boson_backend_mem::MemQueueBackend;
@@ -27,6 +27,12 @@ async fn coord_echo(_ctx: Box<dyn ExecutionContext>) -> boson_core::Result<()> {
     Ok(())
 }
 
+/// Serialize tests that install a process-global mem queue (parallel enqueue races otherwise).
+fn queue_lock() -> &'static Mutex<()> {
+    static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+    LOCK.get_or_init(|| Mutex::new(()))
+}
+
 fn install_mem_backend() {
     let backend: Arc<dyn boson_core::QueueBackend> = Arc::new(MemQueueBackend::new());
     QueueRouter::set_global(QueueRouter::with_default(backend));
@@ -44,6 +50,13 @@ fn test_boson() -> Boson {
 fn test_adapter() -> Arc<dyn BosonCoordinatorBackend> {
     install_mem_backend();
     Arc::new(CoordinatorAdapter::new(Arc::new(test_boson())))
+}
+
+/// Adapter tests share `QueueRouter` global state — take this for the whole test body.
+fn lock_queue() -> std::sync::MutexGuard<'static, ()> {
+    queue_lock()
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
 }
 
 /// Stub backend that rejects every upsert (sad path for task-config bootstrap).
@@ -219,6 +232,7 @@ impl BosonCoordinatorBackend for RecordingUpsertBackend {
 
 #[tokio::test]
 async fn adapter_enqueue_list_count_cancel_workflow() {
+    let _guard = lock_queue();
     let backend = test_adapter();
     assert!(backend.registry().list().contains(&"coord_echo"));
 
@@ -250,6 +264,7 @@ async fn adapter_enqueue_list_count_cancel_workflow() {
 
 #[tokio::test]
 async fn adapter_cancel_missing_job_is_not_found() {
+    let _guard = lock_queue();
     let backend = test_adapter();
     let err = backend.cancel_job("missing-job-id").await.unwrap_err();
     assert!(matches!(err, BosonError::JobNotFound(_)));
@@ -257,6 +272,7 @@ async fn adapter_cancel_missing_job_is_not_found() {
 
 #[tokio::test]
 async fn count_queued_jobs_tracks_enqueue() {
+    let _guard = lock_queue();
     let backend = test_adapter();
     let before = count_queued_jobs(backend.as_ref()).await;
     backend
@@ -269,6 +285,7 @@ async fn count_queued_jobs_tracks_enqueue() {
 
 #[tokio::test]
 async fn ensure_default_task_configs_upserts_registered_task() {
+    let _guard = lock_queue();
     let backend = test_adapter();
     ensure_default_task_configs_embedded(Arc::clone(&backend))
         .await

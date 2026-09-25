@@ -22,6 +22,9 @@ fn env_lock() -> &'static Mutex<()> {
     LOCK.get_or_init(|| Mutex::new(()))
 }
 
+/// 32-byte UTF-8 key meeting soliton's [`MIN_HMAC_KEY_LEN`].
+const TEST_HMAC_KEY: &str = "soliton-test-hmac-key-32-bytes!!";
+
 fn clear_remote_env() {
     // SAFETY: tests hold `env_lock` while mutating process environment.
     unsafe {
@@ -247,7 +250,7 @@ fn subsystem_hmac_header_pair_stable_with_key() {
     let prev = std::env::var(SUBSYSTEM_HMAC_KEY_ENV).ok();
     // SAFETY: tests hold `env_lock` while mutating process environment.
     unsafe {
-        std::env::set_var(SUBSYSTEM_HMAC_KEY_ENV, "dev-secret");
+        std::env::set_var(SUBSYSTEM_HMAC_KEY_ENV, TEST_HMAC_KEY);
     }
     let a = subsystem_hmac_header_pair("POST", "/api/boson/jobs/enqueue", b"{}").expect("tag");
     let b = subsystem_hmac_header_pair("POST", "/api/boson/jobs/enqueue", b"{}").expect("tag");
@@ -264,7 +267,7 @@ async fn remote_get_attaches_subsystem_hmac_header() {
     let prev = std::env::var(SUBSYSTEM_HMAC_KEY_ENV).ok();
     // SAFETY: tests hold `env_lock` while mutating process environment.
     unsafe {
-        std::env::set_var(SUBSYSTEM_HMAC_KEY_ENV, "dev-secret");
+        std::env::set_var(SUBSYSTEM_HMAC_KEY_ENV, TEST_HMAC_KEY);
     }
 
     let listener = TcpListener::bind("127.0.0.1:0").await.expect("bind");
