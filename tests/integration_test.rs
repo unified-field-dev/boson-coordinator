@@ -149,7 +149,7 @@ async fn test_enqueue_and_list_jobs() {
         )
         .await
         .unwrap();
-    assert!(!job_id.is_empty());
+    assert_ne!(job_id, "");
     let jobs = boson.registry().list();
     assert!(jobs.contains(&"test_echo"));
     let listed = boson
@@ -200,7 +200,7 @@ async fn axum_enqueue_returns_job_id() {
     assert_eq!(status, StatusCode::OK);
     assert_eq!(body["success"], true);
     let job_id = body["data"]["job_id"].as_str().expect("job_id");
-    assert!(!job_id.is_empty());
+    assert_ne!(job_id, "");
 }
 
 #[tokio::test]
