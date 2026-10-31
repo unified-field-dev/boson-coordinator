@@ -138,7 +138,7 @@ dependencies = [
 [[package]]
 name = "boson-axum"
 version = "0.1.4"
-source = "git+https://github.com/unified-field-dev/boson?branch=main#316d2c2e150fc3edaee721c90db0ffc5284a88b2"
+source = "git+https://github.com/unified-field-dev/boson?branch=main#3af2ba3ba83b7369cd87f8aa4a8926bcdc009c90"
 dependencies = [
  "axum",
  "boson-core",
@@ -153,7 +153,7 @@ dependencies = [
 [[package]]
 name = "boson-backend-mem"
 version = "0.1.4"
-source = "git+https://github.com/unified-field-dev/boson?branch=main#316d2c2e150fc3edaee721c90db0ffc5284a88b2"
+source = "git+https://github.com/unified-field-dev/boson?branch=main#3af2ba3ba83b7369cd87f8aa4a8926bcdc009c90"
 dependencies = [
  "async-trait",
  "boson-core",
@@ -190,7 +190,7 @@ dependencies = [
 [[package]]
 name = "boson-core"
 version = "0.1.4"
-source = "git+https://github.com/unified-field-dev/boson?branch=main#316d2c2e150fc3edaee721c90db0ffc5284a88b2"
+source = "git+https://github.com/unified-field-dev/boson?branch=main#3af2ba3ba83b7369cd87f8aa4a8926bcdc009c90"
 dependencies = [
  "async-trait",
  "chrono",
@@ -203,7 +203,7 @@ dependencies = [
 [[package]]
 name = "boson-macros"
 version = "0.1.4"
-source = "git+https://github.com/unified-field-dev/boson?branch=main#316d2c2e150fc3edaee721c90db0ffc5284a88b2"
+source = "git+https://github.com/unified-field-dev/boson?branch=main#3af2ba3ba83b7369cd87f8aa4a8926bcdc009c90"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -213,7 +213,7 @@ dependencies = [
 [[package]]
 name = "boson-runtime"
 version = "0.1.4"
-source = "git+https://github.com/unified-field-dev/boson?branch=main#316d2c2e150fc3edaee721c90db0ffc5284a88b2"
+source = "git+https://github.com/unified-field-dev/boson?branch=main#3af2ba3ba83b7369cd87f8aa4a8926bcdc009c90"
 dependencies = [
  "async-trait",
  "boson-core",
@@ -227,7 +227,7 @@ dependencies = [
 [[package]]
 name = "boson-telemetry"
 version = "0.1.4"
-source = "git+https://github.com/unified-field-dev/boson?branch=main#316d2c2e150fc3edaee721c90db0ffc5284a88b2"
+source = "git+https://github.com/unified-field-dev/boson?branch=main#3af2ba3ba83b7369cd87f8aa4a8926bcdc009c90"
 dependencies = [
  "serde_json",
 ]
@@ -235,7 +235,7 @@ dependencies = [
 [[package]]
 name = "boson-valence-identity"
 version = "0.1.0"
-source = "git+https://github.com/unified-field-dev/boson-valence-identity?branch=main#dd44205cb9b40ce8921d4836ec556756f5893312"
+source = "git+https://github.com/unified-field-dev/boson-valence-identity?branch=main#26ed6e7259c029613b9d32c3e888776e91c27d83"
 dependencies = [
  "boson-core",
  "serde",
@@ -1275,7 +1275,7 @@ dependencies = [
 [[package]]
 name = "soliton"
 version = "0.1.0"
-source = "git+https://github.com/unified-field-dev/soliton?branch=main#cd4240de3b7ebc5985a61e3898794fa6ac8a0ed5"
+source = "git+https://github.com/unified-field-dev/soliton?branch=main#9e9fcafe19bda260a73b742560b7293dac4fa789"
 dependencies = [
  "anyhow",
  "axum",
@@ -1533,7 +1533,7 @@ dependencies = [
 [[package]]
 name = "uf-valence"
 version = "0.1.5"
-source = "git+https://github.com/unified-field-dev/valence?branch=main#fa4d8002ca4e0567b484ed39ae0f076e5cb84820"
+source = "git+https://github.com/unified-field-dev/valence?branch=main#6a27698507c61eb5ce0287e28798b8711f14a994"
 dependencies = [
  "uf-valence-backend-mem",
  "uf-valence-core",
@@ -1543,7 +1543,7 @@ dependencies = [
 [[package]]
 name = "uf-valence-backend-mem"
 version = "0.1.5"
-source = "git+https://github.com/unified-field-dev/valence?branch=main#fa4d8002ca4e0567b484ed39ae0f076e5cb84820"
+source = "git+https://github.com/unified-field-dev/valence?branch=main#6a27698507c61eb5ce0287e28798b8711f14a994"
 dependencies = [
  "async-trait",
  "serde_json",
@@ -1554,7 +1554,7 @@ dependencies = [
 [[package]]
 name = "uf-valence-core"
 version = "0.1.5"
-source = "git+https://github.com/unified-field-dev/valence?branch=main#fa4d8002ca4e0567b484ed39ae0f076e5cb84820"
+source = "git+https://github.com/unified-field-dev/valence?branch=main#6a27698507c61eb5ce0287e28798b8711f14a994"
 dependencies = [
  "async-trait",
  "chrono",
@@ -1573,7 +1573,7 @@ dependencies = [
 [[package]]
 name = "uf-valence-macros"
 version = "0.1.5"
-source = "git+https://github.com/unified-field-dev/valence?branch=main#fa4d8002ca4e0567b484ed39ae0f076e5cb84820"
+source = "git+https://github.com/unified-field-dev/valence?branch=main#6a27698507c61eb5ce0287e28798b8711f14a994"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1584,7 +1584,7 @@ dependencies = [
 [[package]]
 name = "uf-valence-schema-dsl"
 version = "0.1.5"
-source = "git+https://github.com/unified-field-dev/valence?branch=main#fa4d8002ca4e0567b484ed39ae0f076e5cb84820"
+source = "git+https://github.com/unified-field-dev/valence?branch=main#6a27698507c61eb5ce0287e28798b8711f14a994"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1594,7 +1594,7 @@ dependencies = [
 [[package]]
 name = "uf-valence-telemetry"
 version = "0.1.5"
-source = "git+https://github.com/unified-field-dev/valence?branch=main#fa4d8002ca4e0567b484ed39ae0f076e5cb84820"
+source = "git+https://github.com/unified-field-dev/valence?branch=main#6a27698507c61eb5ce0287e28798b8711f14a994"
 dependencies = [
  "serde_json",
 ]
