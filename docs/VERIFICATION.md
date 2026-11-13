@@ -22,7 +22,7 @@ cargo test --features axum -- --test-threads=1
 RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --features axum
 ```
 
-Local fuller gate (needs `deathbreakfast/soliton` for `remote-http`):
+Local fuller gate (needs access to the private soliton crate for `remote-http`):
 
 ```bash
 cargo clippy --all-targets --features axum,remote-http -- -D warnings
