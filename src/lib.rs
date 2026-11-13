@@ -25,8 +25,8 @@
 //!   defaults at host boot so workers see current retry and rate-limit policy.
 //!   [Get started](#task-config-bootstrap)
 //! - **Autoscale helpers** — [`scaling::compute_target_workers`] turns queue depth into a worker
-//!   count with hysteresis; [`stats::count_queued_jobs`] feeds it ([`scaling`](scaling/index.html) /
-//!   [`stats`](stats/index.html) API reference)
+//!   count with hysteresis; [`stats::count_queued_jobs`] feeds it ([`scaling`] /
+//!   [`stats`] API reference)
 //!
 //! # Feature flags
 //!
