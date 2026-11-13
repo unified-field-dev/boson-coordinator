@@ -3,7 +3,7 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use boson_core::{Job, JobStatus, Result, Run, TaskConfig, TaskRunStats};
+use boson_core::{Job, JobKey, JobStatus, Result, Run, RunKey, TaskConfig, TaskRunStats};
 use boson_runtime::Boson;
 
 use crate::BosonCoordinatorBackend;
@@ -68,6 +68,18 @@ impl BosonCoordinatorBackend for CoordinatorAdapter {
             .unwrap_or_default()
     }
 
+    async fn list_jobs_after(
+        &self,
+        status_filter: Option<JobStatus>,
+        after: Option<&JobKey>,
+        limit: usize,
+    ) -> Vec<Job> {
+        self.inner
+            .list_jobs_after(status_filter, after, limit)
+            .await
+            .unwrap_or_default()
+    }
+
     async fn cancel_job(&self, job_id: &str) -> Result<()> {
         self.inner.cancel_job(job_id).await
     }
@@ -88,6 +100,18 @@ impl BosonCoordinatorBackend for CoordinatorAdapter {
     ) -> Vec<Run> {
         self.inner
             .list_runs(job_id_filter, offset, limit)
+            .await
+            .unwrap_or_default()
+    }
+
+    async fn list_runs_after(
+        &self,
+        job_id_filter: Option<&str>,
+        after: Option<&RunKey>,
+        limit: usize,
+    ) -> Vec<Run> {
+        self.inner
+            .list_runs_after(job_id_filter, after, limit)
             .await
             .unwrap_or_default()
     }
